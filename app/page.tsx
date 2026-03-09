@@ -1,37 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from "react";
+import { TECHNIQUES, CATEGORIES, ROUTINES } from "./data/exercises";
+import type { BreathingPhase, Technique } from "./data/exercises";
 
 type Screen = "home" | "practice" | "progress" | "routines" | "exercise";
 type SessionView = "intro" | "session" | "complete";
 type TimerHandle = ReturnType<typeof setInterval>;
-
-type BreathingPhase = {
-  label: string;
-  duration: number;
-  scale: number;
-  instruction: string;
-  icon: string;
-};
-
-type Technique = {
-  id: string;
-  name: string;
-  subtitle: string;
-  pattern: string;
-  duration: string;
-  difficulty: string;
-  tag: string;
-  color: string;
-  bg: string;
-  accent: string;
-  phases: BreathingPhase[];
-  benefits: string[];
-  steps: string[];
-  completionMsg: string;
-  sessions: number;
-  bestStreak: number;
-};
 
 const clearIntervalSafe = (timer: TimerHandle | null) => {
   if (timer !== null) {
@@ -47,134 +22,6 @@ const NAV_ITEMS: Array<{ id: Exclude<Screen, "exercise">; icon: string; label: s
   { id: "practice", icon: "◎", label: "Practice" },
   { id: "progress", icon: "▲", label: "Progress" },
   { id: "routines", icon: "☰", label: "Routines" },
-];
-
-const TECHNIQUES: Technique[] = [
-  {
-    id: "box",
-    name: "Box Breathing",
-    subtitle: "Navy SEAL Technique",
-    pattern: "4 · 4 · 4 · 4",
-    duration: "5 min",
-    difficulty: "Beginner",
-    tag: "Focus",
-    color: "#4A9EAF",
-    bg: "linear-gradient(160deg, #0d2535 0%, #0a1e2e 60%, #071520 100%)",
-    accent: "#4A9EAF",
-    phases: [
-      { label: "Inhale", duration: 4, scale: 1.38, instruction: "Breathe in slowly through your nose", icon: "↑" },
-      { label: "Hold Full", duration: 4, scale: 1.38, instruction: "Hold your breath, stay relaxed", icon: "■" },
-      { label: "Exhale", duration: 4, scale: 0.62, instruction: "Release slowly through your mouth", icon: "↓" },
-      { label: "Hold Empty", duration: 4, scale: 0.62, instruction: "Rest before the next breath", icon: "■" },
-    ],
-    benefits: ["Reduces cortisol", "Improves focus", "Calms the nervous system"],
-    steps: [
-      "Sit upright with your feet flat on the floor",
-      "Relax your shoulders and jaw completely",
-      "Follow the circle — inhale as it expands",
-      "Hold at the peak, then exhale as it contracts",
-    ],
-    completionMsg: "Well done. Your nervous system has been reset.",
-    sessions: 48,
-    bestStreak: 14,
-  },
-  {
-    id: "478",
-    name: "4-7-8 Breathing",
-    subtitle: "Dr. Weil's Sleep Method",
-    pattern: "4 · 7 · 8",
-    duration: "4 min",
-    difficulty: "Intermediate",
-    tag: "Sleep",
-    color: "#8B7EC3",
-    bg: "linear-gradient(160deg, #1a1530 0%, #110f28 60%, #0c0b1e 100%)",
-    accent: "#8B7EC3",
-    phases: [
-      { label: "Inhale", duration: 4, scale: 1.38, instruction: "Breathe in quietly through your nose", icon: "↑" },
-      { label: "Hold", duration: 7, scale: 1.38, instruction: "Hold firmly — tongue on roof of mouth", icon: "■" },
-      { label: "Exhale", duration: 8, scale: 0.62, instruction: "Exhale completely through your mouth with a whoosh", icon: "↓" },
-    ],
-    benefits: ["Induces sleep in minutes", "Reduces anxiety", "Activates parasympathetic system"],
-    steps: [
-      "Place the tip of your tongue behind your upper front teeth",
-      "Exhale completely through your mouth making a whoosh sound",
-      "Close your mouth and inhale quietly through your nose",
-      "Exhale completely again — this is one breath cycle",
-    ],
-    completionMsg: "Perfect. Your body is ready for deep rest.",
-    sessions: 32,
-    bestStreak: 21,
-  },
-  {
-    id: "wimhof",
-    name: "Wim Hof Method",
-    subtitle: "Controlled Hyperventilation",
-    pattern: "30 Breaths · Retention",
-    duration: "10 min",
-    difficulty: "Advanced",
-    tag: "Energy",
-    color: "#D4634A",
-    bg: "linear-gradient(160deg, #2a1008 0%, #1e0c06 60%, #120804 100%)",
-    accent: "#D4634A",
-    phases: [
-      { label: "Power Inhale", duration: 2, scale: 1.5, instruction: "Inhale deeply through mouth — fill completely", icon: "↑↑" },
-      { label: "Let Go", duration: 2, scale: 0.5, instruction: "Release naturally — don't force the exhale", icon: "↓" },
-      { label: "Retention", duration: 8, scale: 0.68, instruction: "Hold after exhale — stay calm and still", icon: "◎" },
-      { label: "Recovery", duration: 3, scale: 1.2, instruction: "Deep recovery breath — hold for 15s", icon: "↑" },
-    ],
-    benefits: ["Boosts energy instantly", "Strengthens immune system", "Increases cold tolerance"],
-    steps: [
-      "Find a comfortable seated or lying position",
-      "30 rapid deep breaths — in through mouth, out naturally",
-      "After 30 breaths, exhale and hold (retention phase)",
-      "When you need to breathe, take one deep recovery breath",
-    ],
-    completionMsg: "Incredible. Your body chemistry has shifted.",
-    sessions: 19,
-    bestStreak: 7,
-  },
-  {
-    id: "diaphragmatic",
-    name: "Diaphragmatic",
-    subtitle: "Deep Belly Breathing",
-    pattern: "5 · 0 · 5",
-    duration: "6 min",
-    difficulty: "Beginner",
-    tag: "Relax",
-    color: "#5EC394",
-    bg: "linear-gradient(160deg, #0a2018 0%, #071a12 60%, #050f0a 100%)",
-    accent: "#5EC394",
-    phases: [
-      { label: "Belly Inhale", duration: 5, scale: 1.38, instruction: "Breathe into your belly — let it rise", icon: "↑" },
-      { label: "Exhale", duration: 5, scale: 0.62, instruction: "Let your belly fall naturally and fully", icon: "↓" },
-    ],
-    benefits: ["Lowers heart rate", "Reduces blood pressure", "Maximises oxygen exchange"],
-    steps: [
-      "Place one hand on your chest, one on your belly",
-      "Breathe so only the belly hand rises — chest stays still",
-      "Inhale slowly through your nose for a full 5 counts",
-      "Exhale through pursed lips — feel your belly hollow",
-    ],
-    completionMsg: "Beautiful. You've activated your rest-and-digest system.",
-    sessions: 61,
-    bestStreak: 30,
-  },
-];
-
-const CATEGORIES = [
-  { name: "Relaxation & Stress", icon: "🌊", color: "#4A9EAF", sub: "Calm the nervous system" },
-  { name: "Sleep & Wind Down", icon: "🌙", color: "#8B7EC3", sub: "Prepare for deep rest" },
-  { name: "Energy & Focus", icon: "⚡", color: "#E8A838", sub: "Sharpen mental clarity" },
-  { name: "Anxiety Relief", icon: "🫁", color: "#5EC394", sub: "Ground yourself fast" },
-  { name: "Athletic Performance", icon: "🏃", color: "#D4634A", sub: "Optimise oxygen intake" },
-  { name: "Mindfulness", icon: "☯", color: "#A47EC3", sub: "Deepen awareness" },
-];
-
-const ROUTINES = [
-  { name: "Morning Energiser", icon: "🌅", techniques: 3, duration: 10, difficulty: "Moderate", color: "#E8A838", desc: "Box + Wim Hof + Diaphragmatic" },
-  { name: "Pre-Sleep Wind Down", icon: "🌙", techniques: 2, duration: 8, difficulty: "Easy", color: "#8B7EC3", desc: "4-7-8 + Diaphragmatic" },
-  { name: "Midday Reset", icon: "☀️", techniques: 2, duration: 5, difficulty: "Easy", color: "#4A9EAF", desc: "Box + Diaphragmatic" },
-  { name: "Pre-Workout Boost", icon: "💪", techniques: 3, duration: 7, difficulty: "Intense", color: "#D4634A", desc: "Wim Hof + Box + Energy Breath" },
 ];
 
 const DAYS = ["M", "T", "W", "T", "F", "S", "S"];
