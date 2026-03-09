@@ -416,7 +416,7 @@ function ExerciseDetail({ technique, onBack }: { technique: Technique; onBack: (
         </div>
 
         {/* Pause / end */}
-        <div style={{ padding: "0 20px 20px", flexShrink: 0, display: "flex", gap: 10 }}>
+        <div style={{ padding: "24px 20px 20px", flexShrink: 0, display: "flex", gap: 10 }}>
           <button onClick={() => setActive(!active)} style={{
             flex: 1, padding: "14px", background: active ? "rgba(255,255,255,0.06)" : c,
             color: "#fff", border: `1px solid ${active ? "rgba(255,255,255,0.12)" : c}`,
@@ -498,7 +498,7 @@ function ExerciseDetail({ technique, onBack }: { technique: Technique; onBack: (
 // ─────────────────────────────────────────────────────────────────────────────
 function HomeScreen({ onNavigate }: { onNavigate: Dispatch<SetStateAction<Screen>> }) {
   return (
-    <div style={{ padding: "0 20px 20px" }}>
+    <div style={{ padding: "24px 20px 20px" }}>
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 10, letterSpacing: 4, color: "#4A9EAF", marginBottom: 6 }}>GOOD MORNING</div>
         <div style={{ fontSize: 28, fontWeight: 200, color: "#fff", letterSpacing: -0.5 }}>Breathe with intention</div>
@@ -547,7 +547,7 @@ function HomeScreen({ onNavigate }: { onNavigate: Dispatch<SetStateAction<Screen
 
 function PracticeScreen({ onSelectTechnique }: { onSelectTechnique: (technique: Technique) => void }) {
   return (
-    <div style={{ padding: "0 20px 20px" }}>
+    <div style={{ padding: "24px 20px 20px" }}>
       <div style={{ fontSize: 10, letterSpacing: 4, color: "#4A9EAF", marginBottom: 4 }}>PRACTICE</div>
       <div style={{ fontSize: 26, fontWeight: 200, color: "#fff", marginBottom: 6 }}>Techniques</div>
       <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginBottom: 24 }}>Tap any technique to begin a guided session</div>
@@ -586,7 +586,7 @@ function PracticeScreen({ onSelectTechnique }: { onSelectTechnique: (technique: 
 function ProgressScreen() {
   const [mood, setMood] = useState(3);
   return (
-    <div style={{ padding: "0 20px 20px" }}>
+    <div style={{ padding: "24px 20px 20px" }}>
       <div style={{ fontSize: 10, letterSpacing: 4, color: "#4A9EAF", marginBottom: 4 }}>MONITORING</div>
       <div style={{ fontSize: 26, fontWeight: 200, color: "#fff", marginBottom: 24 }}>Your progress</div>
 
@@ -642,7 +642,7 @@ function ProgressScreen() {
 
 function RoutinesScreen() {
   return (
-    <div style={{ padding: "0 20px 20px" }}>
+    <div style={{ padding: "24px 20px 20px" }}>
       <div style={{ fontSize: 10, letterSpacing: 4, color: "#4A9EAF", marginBottom: 4 }}>DAILY</div>
       <div style={{ fontSize: 26, fontWeight: 200, color: "#fff", marginBottom: 6 }}>Your routines</div>
       <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginBottom: 24 }}>Pre-built sequences for every moment</div>
@@ -691,18 +691,10 @@ export default function App() {
   const showNav = screen !== "exercise";
 
   return (
-    <div style={{ minHeight: "100vh", background: "#070e16", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Georgia', serif" }}>
-      {/* Phone */}
-      <div style={{ width: 390, height: 844, background: "#0d1e2e", borderRadius: 52, border: "1px solid rgba(255,255,255,0.09)", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 50px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04)" }}>
-        {/* Status bar */}
-        <div style={{ height: 48, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", flexShrink: 0, background: screen === "exercise" ? "transparent" : "transparent", zIndex: 10 }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: 0.5 }}>9:41</div>
-          <div style={{ width: 110, height: 26, background: "#0d1e2e", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 18, position: "absolute", left: "50%", transform: "translateX(-50%)" }} />
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>⚡ 87%</div>
-        </div>
-
-        {/* Content */}
-        <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", background: "#0d1e2e", fontFamily: "'Georgia', serif", overflow: "hidden" }}>
+      {/* Scrollable content */}
+      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", maxWidth: 720, width: "100%", margin: "0 auto" }}>
           {screen === "home" && <HomeScreen onNavigate={setScreen} />}
           {screen === "practice" && <PracticeScreen onSelectTechnique={handleSelectTechnique} />}
           {screen === "progress" && <ProgressScreen />}
@@ -713,19 +705,29 @@ export default function App() {
             </div>
           )}
         </div>
-
-        {/* Bottom nav */}
-        {showNav && (
-          <div style={{ height: 78, background: "rgba(10,18,28,0.96)", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-around", flexShrink: 0, backdropFilter: "blur(20px)" }}>
-            {NAV_ITEMS.map((item) => (
-              <button key={item.id} onClick={() => setScreen(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "8px 16px", borderRadius: 12 }}>
-                <div style={{ fontSize: 17, color: screen === item.id ? "#4A9EAF" : "rgba(255,255,255,0.22)", transition: "color 0.2s" }}>{item.icon}</div>
-                <div style={{ fontSize: 8, letterSpacing: 1.5, color: screen === item.id ? "#4A9EAF" : "rgba(255,255,255,0.18)", transition: "color 0.2s" }}>{item.label.toUpperCase()}</div>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* Bottom tab bar — fixed to bottom, full width */}
+      {showNav && (
+        <div style={{
+          flexShrink: 0,
+          height: "calc(64px + env(safe-area-inset-bottom, 0px))",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          background: "rgba(10,18,28,0.96)",
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+          backdropFilter: "blur(20px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-around",
+        }}>
+          {NAV_ITEMS.map((item) => (
+            <button key={item.id} onClick={() => setScreen(item.id)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "8px 20px", borderRadius: 12, flex: 1 }}>
+              <div style={{ fontSize: 18, color: screen === item.id ? "#4A9EAF" : "rgba(255,255,255,0.22)", transition: "color 0.2s" }}>{item.icon}</div>
+              <div style={{ fontSize: 9, letterSpacing: 1.5, color: screen === item.id ? "#4A9EAF" : "rgba(255,255,255,0.18)", transition: "color 0.2s" }}>{item.label.toUpperCase()}</div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
