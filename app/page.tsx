@@ -30,7 +30,9 @@ const STREAK_DATA = [3, 5, 4, 6, 5, 3, 4];
 // ─────────────────────────────────────────────────────────────────────────────
 // ANIMATED BREATHING CIRCLE (full-featured)
 // ─────────────────────────────────────────────────────────────────────────────
-function BreathingOrb({ technique, active, size = 200 }: { technique: Technique; active: boolean; size?: number }) {
+type TimerMode = "number" | "arc" | "none";
+
+function BreathingOrb({ technique, active, size = 200, timerMode = "number" }: { technique: Technique; active: boolean; size?: number; timerMode?: TimerMode }) {
   const [phaseIdx, setPhaseIdx] = useState(0);
   const [countdown, setCountdown] = useState(technique.phases[0].duration);
   const [cssScale, setCssScale] = useState(1.0);
@@ -118,13 +120,39 @@ function BreathingOrb({ technique, active, size = 200 }: { technique: Technique;
         justifyContent: "center",
         gap: 2,
       }}>
-        <div style={{ fontSize: active ? 12 : 20, color: active ? c : "rgba(255,255,255,0.2)", transition: "all 0.3s", lineHeight: 1 }}>
+        {/* Icon */}
+        <div style={{ fontSize: active ? (timerMode === "none" ? 18 : 12) : 20, color: active ? c : "rgba(255,255,255,0.2)", transition: "all 0.3s", lineHeight: 1 }}>
           {active ? phase.icon : "◎"}
         </div>
-        <div style={{ fontSize: size * 0.18, fontFamily: "'Courier New', monospace", color: active ? "#fff" : "rgba(255,255,255,0.15)", fontWeight: 300, lineHeight: 1, marginTop: 2 }}>
-          {active ? countdown : "·"}
-        </div>
-        <div style={{ fontSize: 8, color: active ? c : "rgba(255,255,255,0.15)", letterSpacing: 2.5, textTransform: "uppercase", marginTop: 2 }}>
+
+        {/* Timer indicator — number | arc | hidden */}
+        {!active ? (
+          <div style={{ fontSize: size * 0.18, fontFamily: "'Courier New', monospace", color: "rgba(255,255,255,0.15)", fontWeight: 300, lineHeight: 1, marginTop: 2 }}>·</div>
+        ) : timerMode === "number" ? (
+          <div style={{ fontSize: size * 0.18, fontFamily: "'Courier New', monospace", color: "#fff", fontWeight: 300, lineHeight: 1, marginTop: 2 }}>
+            {countdown}
+          </div>
+        ) : timerMode === "arc" ? (
+          (() => {
+            const arcSize = size * 0.38;
+            const arcR = arcSize / 2 - 4;
+            const arcCirc = 2 * Math.PI * arcR;
+            const arcProgress = phase.duration > 0 ? (phase.duration - countdown) / phase.duration : 0;
+            const arcOffset = arcCirc * (1 - arcProgress);
+            return (
+              <svg width={arcSize} height={arcSize} style={{ marginTop: 4, transform: "rotate(-90deg)" }}>
+                <circle cx={arcSize / 2} cy={arcSize / 2} r={arcR} fill="none" stroke={`${c}22`} strokeWidth="2" />
+                <circle cx={arcSize / 2} cy={arcSize / 2} r={arcR} fill="none" stroke={c} strokeWidth="2.5"
+                  strokeDasharray={arcCirc} strokeDashoffset={arcOffset}
+                  strokeLinecap="round"
+                  style={{ transition: "stroke-dashoffset 1s linear" }} />
+              </svg>
+            );
+          })()
+        ) : null}
+
+        {/* Label */}
+        <div style={{ fontSize: 8, color: active ? c : "rgba(255,255,255,0.15)", letterSpacing: 2.5, textTransform: "uppercase", marginTop: timerMode === "none" && active ? 6 : 2 }}>
           {active ? phase.label : "tap start"}
         </div>
       </div>
@@ -138,6 +166,7 @@ function BreathingOrb({ technique, active, size = 200 }: { technique: Technique;
 function ExerciseDetail({ technique, onBack }: { technique: Technique; onBack: () => void }) {
   const [view, setView] = useState<SessionView>("intro"); // intro | session | complete
   const [active, setActive] = useState(false);
+  const [timerMode, setTimerMode] = useState<TimerMode>("number");
   const [elapsed, setElapsed] = useState(0);
   const [breathCount, setBreathCount] = useState(0);
   const [phaseIdx, setPhaseIdx] = useState(0);
@@ -356,16 +385,35 @@ function ExerciseDetail({ technique, onBack }: { technique: Technique; onBack: (
             <div style={{ fontSize: 9, letterSpacing: 3, color: "rgba(255,255,255,0.3)" }}>SESSION</div>
             <div style={{ fontSize: 13, color: "#fff", fontWeight: 300 }}>{technique.name}</div>
           </div>
-          {/* Timer ring */}
-          <div style={{ position: "relative", width: 48, height: 48 }}>
-            <svg width="48" height="48" style={{ transform: "rotate(-90deg)" }}>
-              <circle cx="24" cy="24" r={progressCircleR} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2" />
-              <circle cx="24" cy="24" r={progressCircleR} fill="none" stroke={c} strokeWidth="2"
-                strokeDasharray={circumference} strokeDashoffset={progressOffset}
-                style={{ transition: "stroke-dashoffset 1s linear" }} />
-            </svg>
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: "#fff", fontFamily: "monospace" }}>
-              {Math.floor((totalSecs - elapsed) / 60)}:{String((totalSecs - elapsed) % 60).padStart(2, "0")}
+          {/* Timer mode toggle + session ring */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+            <div style={{ display: "flex", background: "rgba(255,255,255,0.06)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden" }}>
+              {(["number", "arc", "none"] as TimerMode[]).map((mode) => {
+                const label = mode === "number" ? "123" : mode === "arc" ? "○" : "—";
+                const active = timerMode === mode;
+                return (
+                  <button key={mode} onClick={() => setTimerMode(mode)} style={{
+                    padding: "4px 8px", fontSize: 9, fontFamily: "monospace", letterSpacing: 1,
+                    background: active ? `${c}30` : "transparent",
+                    color: active ? c : "rgba(255,255,255,0.3)",
+                    border: "none", cursor: "pointer",
+                    borderLeft: mode !== "number" ? "1px solid rgba(255,255,255,0.07)" : "none",
+                    transition: "all 0.2s",
+                  }}>{label}</button>
+                );
+              })}
+            </div>
+            {/* Timer ring */}
+            <div style={{ position: "relative", width: 48, height: 48 }}>
+              <svg width="48" height="48" style={{ transform: "rotate(-90deg)" }}>
+                <circle cx="24" cy="24" r={progressCircleR} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2" />
+                <circle cx="24" cy="24" r={progressCircleR} fill="none" stroke={c} strokeWidth="2"
+                  strokeDasharray={circumference} strokeDashoffset={progressOffset}
+                  style={{ transition: "stroke-dashoffset 1s linear" }} />
+              </svg>
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: "#fff", fontFamily: "monospace" }}>
+                {Math.floor((totalSecs - elapsed) / 60)}:{String((totalSecs - elapsed) % 60).padStart(2, "0")}
+              </div>
             </div>
           </div>
         </div>
@@ -387,7 +435,7 @@ function ExerciseDetail({ technique, onBack }: { technique: Technique; onBack: (
 
         {/* Main orb — center of screen */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 28 }}>
-          <BreathingOrb technique={technique} active={active} size={220} />
+          <BreathingOrb technique={technique} active={active} size={220} timerMode={timerMode} />
           <Waveform active={active} />
         </div>
 
